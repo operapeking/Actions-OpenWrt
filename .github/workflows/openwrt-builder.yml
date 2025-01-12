@@ -33,6 +33,27 @@ jobs:
     runs-on: ubuntu-22.04
 
     steps:
+    - name: Maximize build space
+      uses: easimon/maximize-build-space@master
+      with:
+        root-reserve-mb: 5120
+        swap-size-mb: 256
+        remove-dotnet: 'true'
+        remove-android: 'true'
+        remove-haskell: 'true'
+        remove-codeql: 'true'
+        remove-docker-images: 'true'
+
+    - name: Check Server Performance
+      run: |
+        echo -e "Known CPU model: 7763, 8370C, 8272CL, 8171M, E5-2673\n"
+        echo "--------------------------CPU Info--------------------------"
+        echo -e "$(cat /proc/cpuinfo | grep name | cut -f2 -d: | uniq -c)\n"
+        echo "------------------------Memory Info-------------------------"
+        echo -e "$(sudo lshw -short -C memory | grep GiB)\n"
+        echo "-------------------------Disk Info---- ---------------------"
+        echo "$(ls /dev/sd* | grep -v [1-9] | wc -l)" && df -hT
+
     - name: Checkout
       uses: actions/checkout@main
 
@@ -131,7 +152,7 @@ jobs:
       run: |
         echo "release_tag=$(date +"%Y.%m.%d-%H%M")" >> $GITHUB_OUTPUT
         touch release.txt
-        [ ${UPLOAD_GOFILE} = true && ${{ steps.gofile.outputs.url }} ] && echo "🔗 [GoFile](${{ steps.gofile.outputs.url }})" >> release.txt
+        [ ${UPLOAD_GOFILE} = true && ${{ steps.gofile.outputs.url }} ] && echo " [GoFile](${{ steps.gofile.outputs.url }})" >> release.txt
         echo "status=success" >> $GITHUB_OUTPUT
 
     - name: Upload firmware to release
